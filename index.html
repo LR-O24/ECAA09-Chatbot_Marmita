@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marmita do Chef — Atendimento Inteligente</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍱</text></svg>">
+</head>
+<body>
+
+  <!-- Cabeçalho -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-icon">🍱</span>
+      <div class="brand-info">
+        <h1>Marmita do Chef</h1>
+        <p>Chatbot de Pedidos &bull; 100% Client-Side</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <span id="engineBadge" class="badge badge-local">🧠 Modo Elisa + Laya</span>
+      <button id="btnApiKey" class="btn-header" title="Configurar API de LLM">
+        🔑 <span>API Key</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Container Principal -->
+  <main class="main-container">
+
+    <!-- Seção de Conversa / Chat -->
+    <section class="chat-section">
+      <div class="chat-toolbar">
+        <div class="day-selector">
+          <label for="selectDia">📅 Cardápio de:</label>
+          <select id="selectDia">
+            <option value="domingo">Domingo</option>
+            <option value="segunda">Segunda-feira</option>
+            <option value="terca">Terça-feira</option>
+            <option value="quarta">Quarta-feira</option>
+            <option value="quinta">Quinta-feira</option>
+            <option value="sexta">Sexta-feira</option>
+            <option value="sabado">Sábado</option>
+          </select>
+        </div>
+
+        <div class="quick-actions">
+          <button id="btnVerCardapio" class="btn-quick">📋 Ver Cardápio</button>
+          <button id="btnFecharPedido" class="btn-quick">💰 Fechar Pedido</button>
+        </div>
+      </div>
+
+      <!-- Área de Mensagens -->
+      <div id="chatMessages" class="chat-messages">
+        <!-- Bolhas de mensagem são injetadas dinamicamente via JS -->
+      </div>
+
+      <!-- Indicador de Digitando -->
+      <div id="digitandoIndicador" class="digitando-indicador" style="display: none;">
+        <span>O Chef está preparando sua resposta</span>
+        <div class="pontos-digitando">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <!-- Barra de Envio de Mensagem -->
+      <div class="chat-input-container">
+        <form id="chatForm" class="chat-input-form">
+          <input 
+            type="text" 
+            id="chatInput" 
+            placeholder="Digite seu pedido (ex: Quero o bife de vaca acebolado sem cebola e bem passado)..." 
+            autocomplete="off" 
+            required 
+            maxlength="500"
+          >
+          <button type="submit" class="btn-enviar">Enviar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Sidebar do Carrinho de Pedidos -->
+    <aside class="order-sidebar">
+      <div class="sidebar-header">
+        <h2>Seu Pedido</h2>
+        <span id="cartCount" class="cart-count">0</span>
+      </div>
+
+      <div id="carrinhoLista" class="carrinho-lista">
+        <p class="carrinho-vazio">Nenhum item selecionado até o momento.</p>
+      </div>
+
+      <div class="sidebar-totais">
+        <div class="linha-total">
+          <span>Subtotal:</span>
+          <strong id="subtotalValor">R$ 0,00</strong>
+        </div>
+        <div class="linha-total">
+          <span>Taxa de Entrega:</span>
+          <span id="taxaValor">R$ 5,00</span>
+        </div>
+        <div class="linha-total destaque">
+          <span>Total:</span>
+          <strong id="totalValor">R$ 0,00</strong>
+        </div>
+      </div>
+
+      <div class="sidebar-actions">
+        <button id="btnSidebarFinalizar" class="btn-finalizar" onclick="ChatApp.finalizarPedido()">Concluir Pedido</button>
+        <button id="btnLimparCarrinho" class="btn-limpar">Limpar Carrinho</button>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Modal de Configuração de LLM (Opcional, 100% Client-Side) -->
+  <div id="modalApiKey" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔑 Conectar API de LLM (Opcional)</h3>
+        <button id="btnFecharModal" class="btn-fechar-modal">&times;</button>
+      </div>
+      <form id="formApiKey">
+        <div class="modal-body">
+          <p>
+            O chatbot já funciona <strong>100% offline</strong> com o motor nativo <strong>ELIZA 1966 + Laya Extractor</strong>. 
+            Se desejar usar inteligência gerativa avançada em nuvem, insira sua chave. Ela fica salva apenas no seu navegador (<code>localStorage</code>).
+          </p>
+          <div class="form-group">
+            <label for="apiProvider">Provedor:</label>
+            <select id="apiProvider">
+              <option value="gemini">Google Gemini (Recomendado)</option>
+              <option value="openai">OpenAI (ChatGPT)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="apiModelInput">Modelo:</label>
+            <input type="text" id="apiModelInput" value="gemini-1.5-flash" placeholder="Ex: gemini-1.5-flash ou gpt-4o-mini">
+          </div>
+          <div class="form-group">
+            <label for="apiKeyInput">API Key:</label>
+            <input type="password" id="apiKeyInput" placeholder="Cole sua chave aqui...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="btnLimparKey" class="btn-limpar">Remover Chave</button>
+          <button type="submit" class="btn-enviar">Salvar e Ativar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts da Aplicação (Arquitetura Modular) -->
+  <script src="js/menu.js"></script>
+  <script src="js/guardrails.js"></script>
+  <script src="js/laya.js"></script>
+  <script src="js/eliza.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/chat.js"></script>
+
+</body>
+</html>
+
